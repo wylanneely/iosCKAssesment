@@ -23,7 +23,7 @@ class ContactController {
         }
     }
     
-    //MARK: - Functions
+    //MARK: - CK Functions
     
     static func createContactWith(name: String, phoneNumber: String, emailAddress: String) {
         
@@ -34,9 +34,6 @@ class ContactController {
             else { self.contacts.append(contact) }
         }
     }
-    
-    
-    
     
     
     static func fetchContacts() {
@@ -73,5 +70,28 @@ class ContactController {
             if let error = error { NSLog("Error Subscribing to Creation of Contacts: \(error.localizedDescription)") }
         }
     }
+    
+    
+    static func modifyRecord(updatedRecord: CKRecord ,recordIdToModify: CKRecordID ) {
+        
+        let operation = CKModifyRecordsOperation(recordsToSave: [updatedRecord], recordIDsToDelete: [recordIdToModify])
+        
+        operation.savePolicy = .changedKeys
+        operation.queuePriority = .high
+        operation.qualityOfService = .userInteractive
+        
+        CKContainer.default().publicCloudDatabase.add(operation)
+    }
+    
+    
+   static func deleteRecordWithID(_ recordID: CKRecordID, completion: ((_ recordID: CKRecordID?, _ error: Error?) -> Void)?) {
+        
+        CKContainer.default().publicCloudDatabase.delete(withRecordID: recordID) { (recordID, error) in
+            completion?(recordID, error)
+        }
+    }
+    
+    
+    
     
 }

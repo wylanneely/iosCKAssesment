@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 class ContactsTableViewController: UITableViewController {
 
@@ -38,10 +39,23 @@ class ContactsTableViewController: UITableViewController {
         return cell
     }
 
-    
+   let contactController = ContactController()
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // Delete the row from the data source
+            
+            let contact = ContactController.contacts[indexPath.row]
+            
+            let ckRecordID = CKRecordID.init(recordName: contact.CKRecordIDString)
+            
+            
+            ContactController.deleteRecordWithID(ckRecordID, completion: { (ckrecordId, error) in
+                if let error = error {
+                    NSLog("Error Deleting from CLOUDKIT: \(error.localizedDescription)")
+                }
+            })
+            
+            ContactController.contacts.remove(at: indexPath.row)
+            
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
@@ -50,10 +64,25 @@ class ContactsTableViewController: UITableViewController {
     
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+       
+        if segue.identifier == "toExistingContact" {
+            guard let indexPath = tableView.indexPathForSelectedRow,
+                let detailVC = segue.destination as? ContactDetailViewController else { return }
+            
+            let contact = ContactController.contacts[indexPath.row]
+            
+            detailVC.contact = contact
+            detailVC.isEditingExistingContact = true
+            detailVC.indexOfContact = indexPath.row
+            detailVC.saveAndUpdateButton.title = "Update"
+            detailVC.saveAndUpdateButton.tintColor = .red
+            
+            
+        }
+        
+        
+        
     }
     
 
